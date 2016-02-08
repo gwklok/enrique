@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import sys
 import threading
 from time import time
@@ -132,7 +130,3 @@ def main():
     print "Starting executor"
     driver = mesos.native.MesosExecutorDriver(MyExecutor())
     sys.exit(0 if driver.run() == mesos_pb2.DRIVER_STOPPED else 1)
-
-
-if __name__ == "__main__":
-    main()
