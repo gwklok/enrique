@@ -101,24 +101,27 @@ def anneal(temperature,cooling_rate,location,num_mutations,problem):
     best_fitness = parent_fitness = None
     best_key = parent_key = location
     T = temperature
-    while T >= 0:
-        #print("Temperature: {}".format(T))
-        #print("Cooling rate: {}".format(cooling_rate))
-        #print("Fitness: {}".format(parent_fitness))
-        #if parent_key is not None:
-        #print("Key: {}".format(parent_key))
+    while T >= 1:
+        print("Temperature: {}".format(T))
+        print("Cooling rate: {}".format(cooling_rate))
+        print("Best Fitness: {}".format(best_fitness))
+        if best_key is not None:
+            print("Best Key: {}".format(best_key))
         start = time()
         for i in xrange(num_mutations):
             new_key = problem.mutation(parent_key)
             fitness = problem.fitness_score(new_key)
             if parent_fitness is None:
-                parent_fitness = fitness
-                parent_key = new_key
+                best_fitness = parent_fitness = fitness
+                best_key = parent_key = new_key
                 continue
             dF = fitness - parent_fitness
             if dF < 0.0:
-                best_fitness = parent_fitness = fitness
-                best_key = parent_key = new_key
+                if fitness < best_fitness:
+                    best_fitness = fitness
+                    best_key = new_key
+                parent_fitness = fitness
+                parent_key = new_key
             elif T>0:
                 prob = e**(dF/T)
                 if prob > random.uniform(0, 1):
@@ -126,7 +129,6 @@ def anneal(temperature,cooling_rate,location,num_mutations,problem):
                     parent_key = new_key
         #print("Keys/s: {:.2f}".format(num_mutations/(time() - start)))
         T -= cooling_rate
-        print("{}".format(fitness))
     return best_fitness, best_key
 
 def main():

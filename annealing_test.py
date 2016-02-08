@@ -31,4 +31,4 @@ def test_answer():
     problem = traveling_sailor.TSPSA()
     problem.init(cities)
     #temperature,cooling_rate,location,num_mutations,problem
-    assert anneal(250,1,cities.  keys(),50000,problem) == 0
+    assert anneal(20,0.2,cities.keys(),50000,problem) == 0
