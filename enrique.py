@@ -32,10 +32,6 @@ class MyExecutor(mesos.interface.Executor):
             driver.sendStatusUpdate(update)
             print task.data
 
-            # print "query is: {}".format(parsed_json['query'])
-            #print "searchSpace is: {}".format(parsed_json['searchSpace'])
-            # print "index 0 is: " + str(parsed_json['searchSpace'][0])
-
             parsed_json = json.loads(task.data)
             uid = parsed_json['uid'] #just echo
             location = parsed_json['location'] #starting search location
@@ -49,17 +45,8 @@ class MyExecutor(mesos.interface.Executor):
             print "start: cooling rate is: ".format(cooling_rate)
             print "start: num_mutations is: ".format(num_mutations)
 
-            # if location is None:
-            #     location = magic_random_function()
-
             e = math.e
 
-        #for i,element in enumerate(1000): # hardcoded number of iterations.. could be higher
-
-            # qfm, floor = quadgram_fitness_from_text(compile_corpora())
-            #e = math.e
-
-            # best_key = parent_key = gen_rand_playfair_key()
             best_fitness = parent_fitness = None
             best_key = location
             T = temperature
@@ -104,40 +91,6 @@ class MyExecutor(mesos.interface.Executor):
             driver.sendStatusUpdate(update)
             return parent_key
 
-
-            # parsed_json = json.loads(task.data)
-            # found = False
-            # length = len(parsed_json['searchSpace'])
-            # for i,element in enumerate(parsed_json['searchSpace']):
-            #     if i%(length/20) == 0:
-            #         update = mesos_pb2.TaskStatus()
-            #         update.task_id.value = task.task_id.value
-            #         update.state = mesos_pb2.TASK_RUNNING
-            #         update.data = json.dumps({"progress": float(i)/len(parsed_json['searchSpace'])})
-            #         driver.sendStatusUpdate(update)
-            #
-            #     if parsed_json['query'] == element:
-            #         print "found it"
-            #         print "got it. neat. index is {} and value is: {}".format(i, element)
-            #         update = mesos_pb2.TaskStatus()
-            #         update.task_id.value = task.task_id.value
-            #         update.state = mesos_pb2.TASK_FINISHED
-            #         update.data = json.dumps({"result": i+parsed_json['offset']})
-            #         driver.sendStatusUpdate(update)
-            #         found = True
-            #         break
-            #
-            # # This is where one would perform the requested task.
-            #
-            # print "Finished..."
-            # if(found == False):
-            #     update = mesos_pb2.TaskStatus()
-            #     update.task_id.value = task.task_id.value
-            #     update.state = mesos_pb2.TASK_FINISHED
-            #     update.data = json.dumps({"result": -1})
-            #     driver.sendStatusUpdate(update)
-            # print "Sent status update"
-
         thread = threading.Thread(target=run_task)
         thread.start()
 
@@ -145,7 +98,12 @@ class MyExecutor(mesos.interface.Executor):
         # Send it back to the scheduler.
         driver.sendFrameworkMessage(message)
 
-if __name__ == "__main__":
+
+def main():
     print "Starting executor"
     driver = mesos.native.MesosExecutorDriver(MyExecutor())
     sys.exit(0 if driver.run() == mesos_pb2.DRIVER_STOPPED else 1)
+
+
+if __name__ == "__main__":
+    main()
