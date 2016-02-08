@@ -99,14 +99,14 @@ class MyExecutor(mesos.interface.Executor):
 def anneal(temperature,cooling_rate,location,num_mutations,problem):
     e = math.e
     best_fitness = parent_fitness = None
-    best_key = location
+    best_key = parent_key = location
     T = temperature
-
     while T >= 0:
-        print("Temperature: {}".format(T))
-        print("Cooling rate: {}".format(cooling_rate))
-        print("Fitness: {}".format(parent_fitness))
-        print("Key: {}".format(parent_key))
+        #print("Temperature: {}".format(T))
+        #print("Cooling rate: {}".format(cooling_rate))
+        #print("Fitness: {}".format(parent_fitness))
+        #if parent_key is not None:
+        #print("Key: {}".format(parent_key))
         start = time()
         for i in xrange(num_mutations):
             new_key = problem.mutation(parent_key)
@@ -116,17 +116,17 @@ def anneal(temperature,cooling_rate,location,num_mutations,problem):
                 parent_key = new_key
                 continue
             dF = fitness - parent_fitness
-            if dF > 0.0:
+            if dF < 0.0:
                 best_fitness = parent_fitness = fitness
                 best_key = parent_key = new_key
-            else:
+            elif T>0:
                 prob = e**(dF/T)
                 if prob > random.uniform(0, 1):
                     parent_fitness = fitness
                     parent_key = new_key
-        print("Keys/s: {:.2f}".format(num_mutations/(time() - start)))
-        print("")
+        #print("Keys/s: {:.2f}".format(num_mutations/(time() - start)))
         T -= cooling_rate
+        print("{}".format(fitness))
     return best_fitness, best_key
 
 def main():
