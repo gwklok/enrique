@@ -23,7 +23,7 @@ setup(
     description=('Magellan executor'),
     long_description=long_description,
     packages=[],
-    install_requires = install_requires,
+    install_requires = install_requires,                                                                                                                                                                                                                            
     entry_points={'console_scripts': [
         'enrique = enrique:main'
     ]}
