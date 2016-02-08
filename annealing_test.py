@@ -1,10 +1,8 @@
-# content of test_sample.py
-from enrique import anneal
 import itertools
 from copy import deepcopy
-import traveling_sailor
 
-def bruteforce(problem,cities):
+
+def bruteforce(problem, cities):
     print("city list length is: {}".format(len(cities)))
     print("cities is: {}".format(cities))
     tempCities = deepcopy(cities)
@@ -17,11 +15,11 @@ def bruteforce(problem,cities):
     best_key = None
 
     print("tempCities length is: {}".format(len(tempCities)))
-    # print("city keys are: {}".format(cities.keys()))
+    print("city keys are: {}".format(cities.keys()))
     allPermutations = itertools.permutations(tempCities.keys())
     for i in allPermutations:
         newtup = i + (staticItem[0],)
-        fitness = problem.fitness_score(newtup)
+        fitness = problem.energy(newtup)
         if(fitness < best_fitness):
             best_fitness = fitness
             best_key = newtup
@@ -33,6 +31,7 @@ def bruteforce(problem,cities):
 def test_answer():
     import sys
     sys.path.append("/home/vagrant/traveling-sailor")
+    sys.path.append("../traveling-sailor")
     import traveling_sailor
 
     cities = {
@@ -58,17 +57,18 @@ def test_answer():
     'Baltimore': (39.28, 76.62)
     }
 
-    problem = traveling_sailor.TSPSA()
-    problem.init(cities)
 
-    #temperature,cooling_rate,location,num_mutations,problem
+    tsp = traveling_sailor.TSPSA(cities, None)
     import time
     brute_start = int(round(time.time() * 1000))
-    best_distance, best_solution = bruteforce(problem,cities)
+    best_distance, best_solution = bruteforce(tsp,cities)
     brute_end = int(round(time.time() * 1000))
 
     anneal_start = int(round(time.time() * 1000))
-    good_distance,good_solution = anneal(100,0.2,cities.keys(),1000,problem)
+    tsp.copy_strategy = "slice"
+    auto_schedule = tsp.auto(minutes=0.001)
+    tsp.set_schedule(auto_schedule)
+    good_distance, good_solution = tsp.anneal()
     anneal_end = int(round(time.time() * 1000))
 
     print("best solution is {} with key {}".format(best_distance,best_solution))
@@ -80,7 +80,6 @@ def test_answer():
     #print("good solution is {} with key {}".format(good_distance,good_solution))
     #assert anneal(1000,0.2,cities.keys(),50000,problem) == 0
     assert best_solution > good_solution
-
 
 
 if __name__ == "__main__":

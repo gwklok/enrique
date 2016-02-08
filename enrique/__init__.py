@@ -8,10 +8,11 @@ import json
 
 import mesos.interface
 from mesos.interface import mesos_pb2
-import mesos.native
+#import mesos.native
 
 # XXX Hardcode client for testing
 sys.path.append("/home/vagrant/traveling-sailor")
+sys.path.append("../traveling-sailor")
 import traveling_sailor
 # latitude and longitude for the twenty largest U.S. cities
 cities = {
@@ -71,10 +72,11 @@ class MyExecutor(mesos.interface.Executor):
             print "start: num_mutations is: ".format(num_mutations)
 
             # XXX
-            problem = traveling_sailor.TSPSA()
-            problem.init(cities)
-
-            best_key, best_fitness = anneal(temperature,cooling_rate,location,num_mutations,problem)
+            tsp = traveling_sailor.TSPSA(cities, location)
+            tsp.copy_strategy = "slice"
+            auto_schedule = tsp.auto(minutes=0.5)
+            tsp.set_schedule(auto_schedule)
+            best_key, best_fitness = tsp.anneal()
 
             print "Best Fitness: {}".format(best_fitness)
             print "Best Key: {}".format(best_key)
@@ -97,40 +99,6 @@ class MyExecutor(mesos.interface.Executor):
         # Send it back to the scheduler.
         driver.sendFrameworkMessage(message)
 
-def anneal(temperature,cooling_rate,location,num_mutations,problem):
-    e = math.e
-    best_fitness = parent_fitness = None
-    best_key = parent_key = location
-    T = temperature
-    while T >= 1:
-        print("Temperature: {}".format(T))
-        print("Cooling rate: {}".format(cooling_rate))
-        print("Best Fitness: {}".format(best_fitness))
-        if best_key is not None:
-            print("Best Key: {}".format(best_key))
-        start = time()
-        for i in xrange(num_mutations):
-            new_key = problem.mutation(parent_key)
-            fitness = problem.fitness_score(new_key)
-            if parent_fitness is None:
-                best_fitness = parent_fitness = fitness
-                best_key = parent_key = new_key
-                continue
-            dF = fitness - parent_fitness
-            if dF < 0.0:
-                if fitness < best_fitness:
-                    best_fitness = fitness
-                    best_key = new_key
-                parent_fitness = fitness
-                parent_key = new_key
-            elif T>0:
-                prob = e**(dF/T)
-                if prob > random.uniform(0, 1):
-                    parent_fitness = fitness
-                    parent_key = new_key
-        #print("Keys/s: {:.2f}".format(num_mutations/(time() - start)))
-        T -= cooling_rate
-    return best_fitness, best_key
 
 def main():
     print "Starting executor"
