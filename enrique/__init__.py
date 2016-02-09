@@ -39,8 +39,11 @@ class Enrique(mesos.interface.Executor):
             print "start: location is: ".format(location)
 
             # XXX
-            pkg = imp.load_source(task_name, '/home/vagrant')
-            annealer = pkg.Problem(job_data, location)
+            module = imp.load_source(
+                task_name,
+                '/home/vagrant/{0}/problem.py'.format(task_name)
+            )
+            annealer = module.Problem(job_data, location)
             auto_schedule = annealer.auto(minutes=task_seconds/60.0)
             annealer.set_schedule(auto_schedule)
             best_key, best_fitness = annealer.anneal()
