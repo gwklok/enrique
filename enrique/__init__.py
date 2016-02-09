@@ -56,11 +56,11 @@ class Enrique(mesos.interface.Executor):
             update = mesos_pb2.TaskStatus()
             update.task_id.value = task.task_id.value
             update.state = mesos_pb2.TASK_FINISHED
-            update.data = json.dumps(
-                {"uid": uid},
-                {"best_location": best_key},
-                {"fitness_score": best_fitness}
-            )
+            update.data = json.dumps({
+                "uid": uid,
+                "best_location": best_key,
+                "fitness_score": best_fitness
+            })
             driver.sendStatusUpdate(update)
 
         thread = threading.Thread(target=run_task)
