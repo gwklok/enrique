@@ -61,20 +61,22 @@ class MyExecutor(mesos.interface.Executor):
             parsed_json = json.loads(task.data)
             uid = parsed_json['uid'] #just echo
             location = parsed_json['location'] #starting search location
-            temperature = parsed_json['temperature'] #starting temperature, decreases
-            cooling_rate = parsed_json['cooling_rate'] #final
-            num_mutations = parsed_json['num_mutations'] #final
+            # temperature = parsed_json['temperature'] #starting temperature, decreases
+            # cooling_rate = parsed_json['cooling_rate'] #final
+            # num_mutations = parsed_json['num_mutations'] #final
+            task_seconds = parsed_json['task_seconds']
+            task_name = parsed_json['task_name']
 
             print "start: uid is: ".format(uid)
             print "start: location is: ".format(location)
-            print "start: temperature is: ".format(temperature)
-            print "start: cooling rate is: ".format(cooling_rate)
-            print "start: num_mutations is: ".format(num_mutations)
+            # print "start: temperature is: ".format(temperature)
+            # print "start: cooling rate is: ".format(cooling_rate)
+            # print "start: num_mutations is: ".format(num_mutations)
 
             # XXX
             tsp = traveling_sailor.TSPSA(cities, location)
             tsp.copy_strategy = "slice"
-            auto_schedule = tsp.auto(minutes=0.5)
+            auto_schedule = tsp.auto(task_seconds/60.0)
             tsp.set_schedule(auto_schedule)
             best_key, best_fitness = tsp.anneal()
 
@@ -82,9 +84,9 @@ class MyExecutor(mesos.interface.Executor):
             print "Best Key: {}".format(best_key)
             print "end: uid is: ".format(uid)
             print "end: location is: ".format(location)
-            print "end: temperature is: ".format(temperature)
-            print "end: cooling rate is: ".format(cooling_rate)
-            print "end: num_mutations is: ".format(num_mutations)
+            # print "end: temperature is: ".format(temperature)
+            # print "end: cooling rate is: ".format(cooling_rate)
+            # print "end: num_mutations is: ".format(num_mutations)
 
             update = mesos_pb2.TaskStatus()
             update.task_id.value = task.task_id.value
