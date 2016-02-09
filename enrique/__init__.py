@@ -27,12 +27,19 @@ class Enrique(mesos.interface.Executor):
             driver.sendStatusUpdate(update)
             print task.data
 
-            parsed_json = json.loads(task.data)
-            uid = parsed_json['uid'] #just echo
-            location = parsed_json['location'] #starting search location
-            job_data = parsed_json['job_data']
-            task_seconds = parsed_json['task_seconds']
-            task_name = parsed_json['task_name']
+            task_data = json.loads(task.data)
+            uid = task_data['uid']
+
+            location = task_data['location']
+            # Location is serialized
+            if not location:
+                location = None
+            else:
+                location = json.loads(location)
+
+            job_data = task_data['job_data']
+            task_seconds = task_data['task_seconds']
+            task_name = task_data['task_name']
 
             print "start: uid is: ".format(uid)
             print "start: location is: ".format(location)
@@ -57,7 +64,7 @@ class Enrique(mesos.interface.Executor):
             update.state = mesos_pb2.TASK_FINISHED
             update.data = json.dumps({
                 "uid": uid,
-                "best_location": best_key,
+                "best_location": json.dumps(best_key),
                 "fitness_score": best_fitness
             })
             driver.sendStatusUpdate(update)
