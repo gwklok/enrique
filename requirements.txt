@@ -1,1 +1,1 @@
-simanneal
+-e git://github.com/mesos-magellan/pyrallelsa
