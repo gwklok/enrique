@@ -7,9 +7,10 @@ from importlib import import_module
 import mesos.interface
 import mesos.native
 from mesos.interface import mesos_pb2
-
 from pyrallelsa import group_runner
 from pyrallelsa import ProblemClassPath
+
+from enrique.package import get_problem_path
 
 
 class Enrique(mesos.interface.Executor):
@@ -39,6 +40,7 @@ class Enrique(mesos.interface.Executor):
                 problem_data = task_data['problem_data']
                 problem_data_str = json.dumps(problem_data)
 
+                # problem_path = get_problem_path(problem_name, problem_name)
                 sys.path.append("/home/vagrant/{0}".format(problem_name))
                 pccls_module = import_module("problem")
                 PCCls = getattr(pccls_module, "Problem")
