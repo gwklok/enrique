@@ -2,10 +2,14 @@ import sys
 import threading
 import json
 import imp
+from importlib import import_module
 
 import mesos.interface
-from mesos.interface import mesos_pb2
 import mesos.native
+from mesos.interface import mesos_pb2
+
+from pyrallelsa import group_runner
+from pyrallelsa import ProblemClassPath
 
 
 class Enrique(mesos.interface.Executor):
@@ -29,43 +33,36 @@ class Enrique(mesos.interface.Executor):
 
             task_data = json.loads(task.data)
             uid = task_data['uid']
+            problem_name = task_data['name']
+            task_command = task_data['command']
+            task_divisions = task_data['divisions']
+            problem_data = task_data['problem_data']
 
-            location = task_data['location']
-            # Location is serialized
-            if not location:
-                location = None
+
+            sys.path.append("/home/vagrant/{0}".format(problem_name))
+            pccls_module = import_module("problem")
+            PCCls = getattr(pccls_module, "Problem")
+            pcp = ProblemClassPath("problem", "Problem")
+
+            if task_command == 'divisions':
+                res = list(PCCls.divide(
+                    divisions=task_divisions,
+                    problem_data=problem_data
+                ))
+            elif task_command == 'anneal':
+                minutes_per_division = task_data['minutes_per_division']
+                sstates = task_data['sstates']
+                res = group_runner((uid, pcp, sstates, minutes_per_division,
+                                    problem_data, None))
             else:
-                location = json.loads(location)
-
-            job_data = task_data['job_data']
-            task_seconds = task_data['task_seconds']
-            task_name = task_data['task_name']
-
-            print "start: uid is: ".format(uid)
-            print "start: location is: ".format(location)
-
-            # XXX
-            module = imp.load_source(
-                task_name,
-                '/home/vagrant/{0}/problem.py'.format(task_name)
-            )
-            annealer = module.Problem(job_data, location)
-            auto_schedule = annealer.auto(minutes=task_seconds/60.0)
-            annealer.set_schedule(auto_schedule)
-            best_key, best_fitness = annealer.anneal()
-
-            print "Best Fitness: {}".format(best_fitness)
-            print "Best Key: {}".format(best_key)
-            print "end: uid is: ".format(uid)
-            print "end: location is: ".format(location)
+                raise ValueError("Invalid task_command {}".format(task_command))
 
             update = mesos_pb2.TaskStatus()
             update.task_id.value = task.task_id.value
             update.state = mesos_pb2.TASK_FINISHED
             update.data = json.dumps({
                 "uid": uid,
-                "best_location": json.dumps(best_key),
-                "fitness_score": best_fitness
+                "result": res
             })
             driver.sendStatusUpdate(update)
 
