@@ -22,8 +22,11 @@ setup(
     author='Anthony Bilinski',
     description=('Magellan executor'),
     long_description=long_description,
-    packages=[],
-    install_requires = install_requires,                                                                                                                                                                                                                            
+    packages=['enrique'],
+    install_requires = install_requires,
+    dependency_links=[
+        'git+git://github.com/mesos-magellan/pyrallelsa#egg=pyrallelsa'
+    ],
     entry_points={'console_scripts': [
         'enrique = enrique:main'
     ]}
