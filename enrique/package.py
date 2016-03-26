@@ -104,5 +104,5 @@ class GitRepo(Package):
             git.run("clone {url} {local_dirname}")
         else:
             # If repo exists, pull instead of cloning
-            git.run("-C {local_dirname} up")
+            git.run("-C {local_dirname} pull")
         self._problem_path = local_dirname
