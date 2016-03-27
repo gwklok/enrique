@@ -22,10 +22,12 @@ setup(
     description=('Magellan executor'),
     long_description=long_description,
     packages=find_packages(),
-    install_requires = ['pyrallelsa'],
-    dependency_links=[
-        'git+git://github.com/mesos-magellan/pyrallelsa#egg=pyrallelsa'
-    ],
+    # FIXME installing this way breaks the pyrallelsa package
+    # use reqs in the meantime
+    # install_requires = ['pyrallelsa'],
+    # dependency_links=[
+    #     'git+git://github.com/mesos-magellan/pyrallelsa#egg=pyrallelsa'
+    # ],
     entry_points={'console_scripts': [
         'enrique = enrique:main'
     ]}
