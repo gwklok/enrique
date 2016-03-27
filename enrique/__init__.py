@@ -36,9 +36,8 @@ class Enrique(mesos.interface.Executor):
             uid = task_data['uid']
             problem_name = task_data['name']
             task_command = task_data['command']
-            # NOTE: We dump this back to json because the runner
-            #  expects this to be serialized
-            problem_data = json.dumps(task_data['problem_data'])
+            problem_data = task_data['problem_data']
+            problem_data_str = json.dumps(problem_data)
 
             sys.path.append("/home/vagrant/{0}".format(problem_name))
             pccls_module = import_module("problem")
@@ -57,9 +56,10 @@ class Enrique(mesos.interface.Executor):
             elif task_command == 'anneal':
                 minutes_per_division = task_data['minutes_per_division']
                 sstates = task_data['sstates']
-                solutions = group_runner((uid, pcp, sstates,
-                                         minutes_per_division,
-                                    problem_data, None))
+                solutions = group_runner((
+                    uid, pcp, sstates,
+                    minutes_per_division,
+                    problem_data_str, None))
                 winner = sorted(
                     (solution for solution in solutions),
                     key=lambda s: s.energy
