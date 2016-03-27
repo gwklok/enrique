@@ -36,8 +36,9 @@ class Enrique(mesos.interface.Executor):
             uid = task_data['uid']
             problem_name = task_data['name']
             task_command = task_data['command']
-            problem_data = task_data['problem_data']
-
+            # NOTE: We dump this back to json because the runner
+            #  expects this to be serialized
+            problem_data = json.dumps(task_data['problem_data'])
 
             sys.path.append("/home/vagrant/{0}".format(problem_name))
             pccls_module = import_module("problem")
