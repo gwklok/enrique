@@ -10,6 +10,7 @@ from mesos.interface import mesos_pb2
 
 from pyrallelsa import group_runner
 from pyrallelsa import ProblemClassPath
+from pyrallelsa import Solution
 
 
 class Enrique(mesos.interface.Executor):
@@ -35,7 +36,6 @@ class Enrique(mesos.interface.Executor):
             uid = task_data['uid']
             problem_name = task_data['name']
             task_command = task_data['command']
-            task_divisions = task_data['divisions']
             problem_data = task_data['problem_data']
 
 
@@ -45,25 +45,38 @@ class Enrique(mesos.interface.Executor):
             pcp = ProblemClassPath("problem", "Problem")
 
             if task_command == 'divisions':
+                task_divisions = task_data['divisions']
                 res = list(PCCls.divide(
                     divisions=task_divisions,
                     problem_data=problem_data
                 ))
+                res_data = {
+                    "divisions": res
+                }
             elif task_command == 'anneal':
                 minutes_per_division = task_data['minutes_per_division']
                 sstates = task_data['sstates']
-                res = group_runner((uid, pcp, sstates, minutes_per_division,
+                solutions = group_runner((uid, pcp, sstates,
+                                         minutes_per_division,
                                     problem_data, None))
+                winner = sorted(
+                    (solution for solution in solutions),
+                    key=lambda s: s.energy
+                )[0]
+                res_data = {
+                    "best_location": winner.state,
+                    "fitness_score": winner.energy
+                }
             else:
                 raise ValueError("Invalid task_command {}".format(task_command))
 
             update = mesos_pb2.TaskStatus()
             update.task_id.value = task.task_id.value
             update.state = mesos_pb2.TASK_FINISHED
-            update.data = json.dumps({
-                "uid": uid,
-                "result": res
-            })
+            update.data = json.dumps(dict(
+                uid=uid
+                **res_data
+            ))
             driver.sendStatusUpdate(update)
 
         thread = threading.Thread(target=run_task)
