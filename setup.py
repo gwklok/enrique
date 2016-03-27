@@ -1,7 +1,7 @@
 import os
 import codecs
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 def read(filename):
@@ -10,7 +10,6 @@ def read(filename):
     return codecs.open(os.path.join(here, filename), 'r').read()
 
 
-install_requires = read("requirements.txt").split()
 long_description = read('README.md')
 
 
@@ -22,8 +21,8 @@ setup(
     author='Anthony Bilinski',
     description=('Magellan executor'),
     long_description=long_description,
-    packages=['enrique'],
-    install_requires = install_requires,
+    packages=find_packages(),
+    install_requires = ['pyrallelsa'],
     dependency_links=[
         'git+git://github.com/mesos-magellan/pyrallelsa#egg=pyrallelsa'
     ],
