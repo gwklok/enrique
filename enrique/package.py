@@ -109,15 +109,12 @@ class GitRepo(Package):
         local_dirname = os.path.join(self.package_path,
                                      url.split('/')[-1].split('.git')[0])
         if not os.path.exists(local_dirname):
-            git.run("clone {url} {local_dirname}".format(
-                url=url,
-                local_dirname=local_dirname
-            ))
+            clone = git['clone', url, local_dirname]
+            clone()
         else:
             # If repo exists, pull instead of cloning
-            git.run("-C {local_dirname} pull".format(
-                local_dirname=local_dirname
-            ))
+            pull = git['-C', local_dirname, 'pull']
+            pull()
         self._problem_path = local_dirname
 
     def get_https_dl_url(self):

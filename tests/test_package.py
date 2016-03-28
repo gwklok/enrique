@@ -43,3 +43,8 @@ def test__GitRepo():
                       "git://github.com/mesos-magellan/traveling-sailor")
     assert package.get_https_dl_url() == \
            "https://github.com/mesos-magellan/traveling-sailor"
+    package.fetch()  # clone
+    assert os.path.exists(os.path.join(package.problem_path, ".git"))
+    package.fetch()  # pull
+    assert os.path.exists(os.path.join(package.problem_path, ".git"))
+    package.remove()
