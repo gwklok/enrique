@@ -1,4 +1,5 @@
 import os
+import shutil
 from urlparse import urlparse
 
 import requests
@@ -23,6 +24,8 @@ def get_package_cls(name, url):
     elif url_parsed.scheme in ["http", "https"]:
         if url.endswith("tar.gz"):
             package_cls = GzipArchive
+        if url.endswith(".git"):
+            package_cls = GitRepo
 
     if package_cls is None:
         raise ValueError
@@ -42,10 +45,13 @@ class Package(object):
         self.name = name
         self.url = url
         self._problem_path = None
-        os.makedirs(self.package_path)
+        mkdir_p(self.package_path)
 
     def fetch(self):
         raise NotImplementedError
+
+    def remove(self):
+        shutil.rmtree(self.package_path)
 
     @property
     def problem_path(self):
@@ -99,11 +105,27 @@ class GzipArchive(Archive):
 
 class GitRepo(Package):
     def fetch(self):
+        url = self.get_https_dl_url()
         local_dirname = os.path.join(self.package_path,
-                                     self.url.split('/')[-1])
+                                     url.split('/')[-1].split('.git')[0])
         if not os.path.exists(local_dirname):
-            git.run("clone {url} {local_dirname}")
+            git.run("clone {url} {local_dirname}".format(
+                url=url,
+                local_dirname=local_dirname
+            ))
         else:
             # If repo exists, pull instead of cloning
-            git.run("-C {local_dirname} pull")
+            git.run("-C {local_dirname} pull".format(
+                local_dirname=local_dirname
+            ))
         self._problem_path = local_dirname
+
+    def get_https_dl_url(self):
+        url_parsed = urlparse(self.url)
+        if url_parsed.scheme == "git":
+            url = self.url.replace('git', 'https', 1)
+        elif url_parsed.scheme == "https" and self.url.endswith(".git"):
+            url = self.url
+        else:
+            raise ValueError
+        return url
