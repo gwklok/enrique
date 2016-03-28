@@ -6,7 +6,7 @@ Executor
 
 ```bash
 python setup.py develop
+pip install -r requirements
 
 apt-get install git
-pip install git-up
 ```

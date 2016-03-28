@@ -5,14 +5,33 @@ import requests
 from plumbum.cmd import git, tar
 
 
-ENRIQUE_DIR = os.path.expanduser("~/.mesos-magellan/enrique")
-os.makedirs(ENRIQUE_DIR)
-PACKAGES_DIR = os.path.join(ENRIQUE_DIR, "packages")
-os.makedirs(PACKAGES_DIR)
+def mkdir_p(path):
+    path = os.path.abspath(os.path.expanduser(path))
+    if not os.path.exists(path):
+        os.makedirs(path)
+    return path
+
+ENRIQUE_DIR = mkdir_p("~/.mesos-magellan/enrique")
+PACKAGES_DIR = mkdir_p(os.path.join(ENRIQUE_DIR, "packages"))
+
+
+def get_package_cls(name, url):
+    package_cls = None
+    url_parsed = urlparse(url)
+    if url_parsed.scheme == "git":
+        package_cls = GitRepo
+    elif url_parsed.scheme in ["http", "https"]:
+        if url.endswith("tar.gz"):
+            package_cls = GzipArchive
+
+    if package_cls is None:
+        raise ValueError
+
+    return package_cls
 
 
 def get_problem_path(name, url):
-    package_cls = Package.get_class(name, url)
+    package_cls = get_package_cls(name, url)
     package = package_cls(name, url)
     package.fetch()
     return package.problem_path
@@ -56,17 +75,6 @@ class Package(object):
         return local_filename
 
 
-    @classmethod
-    def get_class(cls, name, url, *args, **kwargs):
-        url_parsed = urlparse(url)
-        # iamverysmart
-        package = dict(
-            git=GitRepo,
-            http=Archive
-        )[url_parsed.scheme]
-        return package.get_class(name, url)
-
-
 class Archive(Package):
     def _extract_package(self, localfile_path):
         raise NotImplementedError
@@ -75,13 +83,6 @@ class Archive(Package):
         localfile_path = self.download_http()
         problem_path = self._extract_package(localfile_path)
         self._problem_path = problem_path
-
-    @classmethod
-    def get_class(cls, name, url, *args, **kwargs):
-        if url.endswith("tar.gz"):
-            return GzipArchive
-        else:
-            raise ValueError
 
 
 class GzipArchive(Archive):
