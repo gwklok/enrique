@@ -1,23 +1,20 @@
 import os
 
-from enrique.package import get_package_cls
+from enrique.package import get_package_cls, get_name_from_url
 from enrique.package import GitRepo
 from enrique.package import GzipArchive
-from enrique.package import mkdir_p, get_problem_path
+from enrique.package import mkdir_p, get_package
 from enrique.package import ENRIQUE_DIR, PACKAGES_DIR
 
 
 def test__get_package_cls():
     assert get_package_cls(
-        "foo_tar",
         "https://foo.bar/baz.tar.gz"
     ) == GzipArchive
     assert get_package_cls(
-        "foo_git",
         "git://github.com/mesos-magellan/traveling-sailor"
     ) == GitRepo
     assert get_package_cls(
-        "foo_https_git",
         "https://github.com/mesos-magellan/traveling-sailor.git"
     ) == GitRepo
 
@@ -74,6 +71,14 @@ def test__GzipArchive():
 def test__get_problem_path():
     tar_gz_url = "https://github.com/mesos-magellan/traveling-sailor/" \
                  "archive/0.1.0.tar.gz"
-    package_name = "__ENRIQUE_TEST_TS_.TAR.GZ"
-    assert os.path.split(get_problem_path(package_name, tar_gz_url))[-1] == \
+    package = get_package(tar_gz_url)
+    assert os.path.split(package.problem_path)[-1] == \
         'traveling-sailor-0.1.0'
+    package.remove()
+
+
+def test__get_name_from_url():
+    tar_gz_url = "https://github.com/mesos-magellan/traveling-sailor/" \
+                 "archive/0.1.0.tar.gz"
+    assert get_name_from_url(tar_gz_url) == 'acc2316890028a326e546a5ea101' \
+                                            '6f093bc28c06'

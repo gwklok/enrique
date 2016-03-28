@@ -1,6 +1,7 @@
 import os
 import shutil
 from urlparse import urlparse
+from hashlib import sha1
 
 from plumbum.cmd import git, tar, wget, pip
 
@@ -15,7 +16,7 @@ ENRIQUE_DIR = mkdir_p("~/.mesos-magellan/enrique")
 PACKAGES_DIR = mkdir_p(os.path.join(ENRIQUE_DIR, "packages"))
 
 
-def get_package_cls(name, url):
+def get_package_cls(url):
     package_cls = None
     url_parsed = urlparse(url)
     if url_parsed.scheme == "git":
@@ -32,12 +33,17 @@ def get_package_cls(name, url):
     return package_cls
 
 
-def get_problem_path(name, url):
-    package_cls = get_package_cls(name, url)
+def get_name_from_url(url):
+    return sha1(url).hexdigest()
+
+
+def get_package(url):
+    package_cls = get_package_cls(url)
+    name = get_name_from_url(url)
     package = package_cls(name, url)
     package.fetch()
     package.setup()
-    return package.problem_path
+    return package
 
 
 class Package(object):
