@@ -2,8 +2,7 @@ import os
 import shutil
 from urlparse import urlparse
 
-import requests
-from plumbum.cmd import git, tar
+from plumbum.cmd import git, tar, wget, pip
 
 
 def mkdir_p(path):
@@ -37,6 +36,7 @@ def get_problem_path(name, url):
     package_cls = get_package_cls(name, url)
     package = package_cls(name, url)
     package.fetch()
+    package.setup()
     return package.problem_path
 
 
@@ -53,6 +53,12 @@ class Package(object):
     def remove(self):
         shutil.rmtree(self.package_path)
 
+    def setup(self):
+        reqs_txt_path = os.path.join(self.problem_path, "requirements.txt")
+        if os.path.exists(reqs_txt_path):
+            install_reqs = pip['install', '--user', '-r', reqs_txt_path]
+            install_reqs()
+
     @property
     def problem_path(self):
         return self._problem_path
@@ -68,16 +74,13 @@ class Package(object):
 
     @staticmethod
     def _download_file(url, download_path):
-        """Download file from url
-
-        http://stackoverflow.com/a/16696317/1798683
-        """
+        """Download file from url"""
         local_filename = os.path.join(download_path, url.split('/')[-1])
-        r = requests.get(url, stream=True)
-        with open(local_filename, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=1024):
-                if chunk:  # filter out keep-alive new chunks
-                    f.write(chunk)
+        if os.path.exists(local_filename):
+            os.remove(local_filename)
+        wget_dl = wget['-P', download_path, url]
+        wget_dl()
+        assert os.path.exists(local_filename)
         return local_filename
 
 
@@ -93,14 +96,25 @@ class Archive(Package):
 
 class GzipArchive(Archive):
     def _extract_package(self, localfile_path):
-        dirname = os.path.split(localfile_path)[-1].split(".")[0]
-        dirpath = os.path.join(self.package_path, dirname)
-        os.makedirs(dirpath)
-        tar.run("-xzf {archive} -C {target_dir}".format(
-            archive=localfile_path,
-            target_dir=dirpath
-        ))
-        return dirpath
+        archive_path = localfile_path
+        dirname = os.path.split(localfile_path)[-1].split(".tar.gz")[0]
+        target_dir = os.path.join(self.package_path, dirname)
+        if os.path.exists(target_dir):
+            shutil.rmtree(target_dir)
+        os.makedirs(target_dir)
+        untar = tar['-xzf', archive_path, '-C', target_dir]
+        untar()
+
+        extracted_list = os.listdir(target_dir)
+        if len(extracted_list) == 1:
+            item = os.path.join(target_dir, extracted_list[0])
+            if os.path.isdir(item):
+                # This is a single extracted directory so we help the
+                #  user out and go inside it and return that for the
+                #  problem_path
+                return item
+
+        return target_dir
 
 
 class GitRepo(Package):
