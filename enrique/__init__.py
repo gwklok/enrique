@@ -69,7 +69,8 @@ class Enrique(mesos.interface.Executor):
                         "fitness_score": winner.energy
                     }
                 else:
-                    raise ValueError("Invalid task_command {}".format(task_command))
+                    raise ValueError("Invalid task_command {}"
+                                     .format(task_command))
 
                 update = mesos_pb2.TaskStatus()
                 update.task_id.value = task.task_id.value
@@ -92,6 +93,16 @@ class Enrique(mesos.interface.Executor):
 
         thread = threading.Thread(target=run_task)
         thread.start()
+
+    def killTask(self, driver, taskId):
+        update = mesos_pb2.TaskStatus()
+        update.task_id.value = taskId.value
+        update.state = mesos_pb2.TASK_KILLED
+        res_dict = {"message": "Killed on request from the scheduler"}
+        update.data = json.dumps(res_dict)
+        # Send update, then die
+        driver.sendStatusUpdate(update)
+        raise SystemExit(res_dict['message'])
 
     def frameworkMessage(self, driver, message):
         # Send it back to the scheduler.
