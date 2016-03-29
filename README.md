@@ -1,4 +1,7 @@
 # enrique
+
+[![Build Status](https://travis-ci.org/mesos-magellan/enrique.svg?branch=master)](https://travis-ci.org/mesos-magellan/enrique)
+
 Executor
 
 
