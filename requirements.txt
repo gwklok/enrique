@@ -1,2 +1,3 @@
 -e git+git://github.com/mesos-magellan/pyrallelsa#egg=pyrallelsa
 plumbum
+mesos.interface

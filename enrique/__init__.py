@@ -5,7 +5,6 @@ import traceback
 from importlib import import_module
 
 import mesos.interface
-import mesos.native
 from mesos.interface import mesos_pb2
 from pyrallelsa import group_runner
 from pyrallelsa import ProblemClassPath
@@ -112,6 +111,7 @@ class Enrique(mesos.interface.Executor):
 
 
 def main():
+    import mesos.native
     print "Starting executor"
     driver = mesos.native.MesosExecutorDriver(Enrique())
     sys.exit(0 if driver.run() == mesos_pb2.DRIVER_STOPPED else 1)
