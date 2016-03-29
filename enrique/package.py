@@ -3,7 +3,8 @@ import shutil
 from urlparse import urlparse
 from hashlib import sha1
 
-from plumbum.cmd import git, tar, wget, pip
+from plumbum.cmd import git, tar, wget, pip, sudo
+from plumbum import ProcessExecutionError
 
 
 def mkdir_p(path):
@@ -62,8 +63,19 @@ class Package(object):
     def setup(self):
         reqs_txt_path = os.path.join(self.problem_path, "requirements.txt")
         if os.path.exists(reqs_txt_path):
-            install_reqs = pip['install', '--user', '-r', reqs_txt_path]
-            install_reqs()
+            for command in [
+                pip['install', '--user', '-r', reqs_txt_path],
+                pip['install', '-r', reqs_txt_path],
+                sudo['pip', 'install', '-r', reqs_txt_path]
+            ]:
+                try:
+                    command()
+                except ProcessExecutionError as e:
+                    print(str(e))
+                else:
+                    break
+            else:
+                raise ProcessExecutionError
 
     @property
     def problem_path(self):
